@@ -28,7 +28,7 @@ const Login = () => {
         }}
       >
         <a
-          href="http://localhost:55555/login/microsoft"
+          href={`${import.meta.env.VITE_BACKEND_SERVER}/login/microsoft`}
           style={{
             width: '100%',
             height: '54px',

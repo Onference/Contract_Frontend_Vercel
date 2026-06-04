@@ -52,7 +52,7 @@ const NavBar = () => {
             </div>
 
             <a
-                href="http://localhost:55555/logout/microsoft"
+                href={`${import.meta.env.VITE_BACKEND_SERVER}/logout/microsoft`}
                 style={{
                     marginLeft: 'auto',
                     textDecoration: 'none',
