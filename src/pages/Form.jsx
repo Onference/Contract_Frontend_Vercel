@@ -4,7 +4,7 @@ import { api } from '../services/api';
 
 const Form = () => {
     const navigate = useNavigate();
-
+const [loading, setLoading] = useState(false);
 const [formData, setFormData] = useState({
     clientName: '',
     date: '',
@@ -46,15 +46,19 @@ const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
+         setLoading(true);
         const { data } = await api.post('/form/submit', formData);
 
-        alert('Submit Successful');
+        alert('Submit Successfull');
         navigate('/');
     } catch (error) {
 
         alert(
             `Submit Failed: ${error.message}`
         );
+    }
+     finally {
+        setLoading(false);
     }
 };
 
@@ -130,7 +134,32 @@ const handleSubmit = async (e) => {
         marginTop: '0.25rem',
         lineHeight: '1.4'
     };
+    const submitButtonStyle = (loading) => ({
+        padding: '0.75rem 2rem',
+        borderRadius: '6px',
+        border: 'none',
+        backgroundColor: loading ? '#93c5fd' : '#0078d4',
+        color: '#ffffff',
+        fontWeight: '600',
+        cursor: loading ? 'not-allowed' : 'pointer'
+    });
 
+    const cancelButtonStyle = {
+        padding: '0.75rem 2rem',
+        borderRadius: '6px',
+        border: '1px solid #cbd5e1',
+        backgroundColor: '#fff',
+        color: '#64748b',
+        fontWeight: '600',
+        cursor: 'pointer'
+    };
+
+    const buttonContainerStyle = {
+        display: 'flex',
+        justifyContent: 'flex-end',
+        gap: '1rem',
+        marginTop: '1rem'
+    };
     return (
         <div style={containerStyle}>
             <form onSubmit={handleSubmit}>
@@ -186,7 +215,7 @@ const handleSubmit = async (e) => {
                                         fontWeight: '500'
                                     }}
                                 >
-                                    Annexure
+                                    Annexure Only
                                 </label>
                             </div>
 
@@ -491,47 +520,23 @@ const handleSubmit = async (e) => {
                     </div>
                 </div>
 
-                <div
-                    style={{
-                        display: 'flex',
-                        justifyContent: 'flex-end',
-                        gap: '1rem',
-                        marginTop: '1rem'
-                    }}
-                >
-                    <button
-                        type="button"
-                        onClick={() => navigate('/')}
-                        style={{
-                            padding: '0.75rem 2rem',
-                            borderRadius: '6px',
-                            border: '1px solid #cbd5e1',
-                            backgroundColor: '#fff',
-                            color: '#64748b',
-                            fontWeight: '600',
-                            cursor: 'pointer'
-                        }}
-                    >
-                        Cancel
-                    </button>
+ <div style={buttonContainerStyle}>
+    <button
+        type="button"
+        onClick={() => navigate('/')}
+        style={cancelButtonStyle}
+    >
+        Cancel
+    </button>
 
-                    <button
-                        type="submit"
-                        style={{
-                            padding: '0.75rem 2rem',
-                            borderRadius: '6px',
-                            border: 'none',
-                            backgroundColor: '#0078d4',
-                            color: '#ffffff',
-                            fontWeight: '600',
-                            cursor: 'pointer',
-                            boxShadow:
-                                '0 2px 4px rgba(0,120,212,0.2)'
-                        }}
-                    >
-                        SUBMIT
-                    </button>
-                </div>
+    <button
+        type="submit"
+        disabled={loading}
+        style={submitButtonStyle(loading)}
+    >
+        {loading ? 'Loading...' : 'SUBMIT'}
+    </button>
+</div>
             </form>
         </div>
     );

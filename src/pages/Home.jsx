@@ -1,10 +1,10 @@
 import React from 'react';
 import { useAuth } from '../hooks/useAuth';
 const Home = () => {
-     const { email } = useAuth();
+     const { name } = useAuth();
     return (
         <div>
-            <h1>Namaste {email}</h1>
+            <h1>Namaste {name}</h1>
         </div>
     );
 };
