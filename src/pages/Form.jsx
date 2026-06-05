@@ -13,12 +13,12 @@ const [formData, setFormData] = useState({
     contractDuration: '',
     clientAddress: '',
     contractType: 'PAID',
-    clientSpecialty: '',
-    honorarium: '',
-    clientRole: '',
+    clientSpecialty: 'Pediatrics',
+    honorarium: '5000',
+    clientRole: 'Host',
     contentFormat: '',
     programName: '',
-    contentCategory: '',
+    contentCategory: 'Exclusive Members Access',
     episodeTitle: '',
     recordingMonth: '',
     numberOfEpisodes: '',
@@ -34,8 +34,16 @@ const [formData, setFormData] = useState({
                 [name]: type === 'checkbox' ? checked : value
             };
 
-            if (name === 'contractType' && value === 'FREE') {
-                updatedState.honorarium = '';
+        if (name === 'contractType') 
+            {
+        if (value === 'FREE') 
+            {
+            updatedState.honorarium = '';
+            } 
+        else if (value === 'PAID' && !prevState.honorarium) 
+            {
+        updatedState.honorarium = '5000';
+            }
             }
 
             return updatedState;
