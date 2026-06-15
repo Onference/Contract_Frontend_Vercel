@@ -4,71 +4,133 @@ import { api } from '../services/api';
 
 const Form = () => {
     const navigate = useNavigate();
-const [loading, setLoading] = useState(false);
-const [formData, setFormData] = useState({
-    clientName: '',
-    date: '',
-    clientEmail: '',
-    annexure: false,
-    contractDuration: '',
-    clientAddress: '',
-    contractType: 'PAID',
-    clientSpecialty: 'Pediatrics',
-    honorarium: '5000',
-    clientRole: 'Host',
-    contentFormat: '',
-    programName: '',
-    contentCategory: 'Exclusive Members Access',
-    episodeTitle: '',
-    recordingMonth: '',
-    numberOfEpisodes: '',
-    streamingMonth: ''
-});
+    const [loading, setLoading] = useState(false);
+    const [formData, setFormData] = useState({
+        clientName: '',
+        date: '',
+        clientEmail: '',
+        annexure: false,
+        contractDuration: '',
+        clientAddress: '',
+        contractType: 'PAID',
+        clientSpecialty: 'Pediatrics',
+        honorarium: '5000',
+        clientRole: 'Host',
+        contentFormat: ["Case Discussion"],
+        programName: '',
+        contentCategory: ['Exclusive Members Access'],
+        episodeTitle: '',
+        recordingMonth: '',
+        numberOfEpisodes: '',
+        streamingMonth: ''
+    });
+
+    const categories = ['Exclusive Members Access', 'Daily Pulse', 'Free'];
+
+    const formats = [
+        'Case Discussion', 
+        'Panel Discussion', 
+        'Talk', 
+        'Reel', 
+        'Q&A', 
+        'Series', 
+        'Case Insight'
+    ];
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
 
         setFormData(prevState => {
+            let updatedValue = value;
+
+            if (type === 'checkbox') {
+                updatedValue = checked;
+            } else if (type === 'number') {
+                updatedValue = value === '' ? '' : Number(value);
+            }
+
             const updatedState = {
                 ...prevState,
-                [name]: type === 'checkbox' ? checked : value
+                [name]: updatedValue
             };
 
-        if (name === 'contractType') 
-            {
-        if (value === 'FREE') 
-            {
-            updatedState.honorarium = '';
-            } 
-        else if (value === 'PAID' && !prevState.honorarium) 
-            {
-        updatedState.honorarium = '5000';
-            }
+            if (name === 'contractType') {
+                if (value === 'FREE') {
+                    updatedState.honorarium = '';
+                } else if (value === 'PAID' && !prevState.honorarium) {
+                    updatedState.honorarium = '5000';
+                }
             }
 
             return updatedState;
         });
     };
 
-const handleSubmit = async (e) => {
-    e.preventDefault();
+    const handleCategoryToggle = (category) => {
+        setFormData(prevState => {
+            const currentCategories = prevState.contentCategory;
+            const isSelected = currentCategories.includes(category);
+            
+            const updatedCategories = isSelected
+                ? currentCategories.filter(item => item !== category) 
+                : [...currentCategories, category]; 
 
-    try {
-         setLoading(true);
-        const { data } = await api.post('/form/submit', formData);
+            return {
+                ...prevState,
+                contentCategory: updatedCategories
+            };
+        });
+    };
 
-        alert('Submit Successfull');
-        navigate('/');
-    } catch (error) {
 
-        alert(
-            `Submit Failed: ${error.message}`
-        );
-    }
-     finally {
-        setLoading(false);
-    }
-};
+    const handleFormatToggle = (format) => {
+        setFormData(prevState => {
+            const currentFormats = prevState.contentFormat;
+            const isSelected = currentFormats.includes(format);
+            
+            const updatedFormats = isSelected
+                ? currentFormats.filter(item => item !== format) 
+                : [...currentFormats, format]; 
+
+            return {
+                ...prevState,
+                contentFormat: updatedFormats
+            };
+        });
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        if (formData.contentFormat.length === 0) {
+            alert('Content Format Required');
+            return;
+        }
+
+        if (formData.contentCategory.length === 0) {
+            alert('Content Category Required');
+            return;
+        }
+
+        try {
+            setLoading(true);
+
+         const payload = {
+                ...formData,
+                contentFormat: formData.contentFormat.join(', '),
+                contentCategory: formData.contentCategory.join(', ')
+            };
+
+            const { data } = await api.post('/form/submit', payload);
+
+            alert('Submit Successful');
+            navigate('/');
+        } catch (error) {
+            alert(`Submit Failed: ${error.message}`);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const containerStyle = {
         maxWidth: '1000px',
@@ -136,12 +198,26 @@ const handleSubmit = async (e) => {
         transition: 'border-color 0.2s'
     };
 
-    const hintStyle = {
-        fontSize: '0.8rem',
-        color: '#64748b',
-        marginTop: '0.25rem',
-        lineHeight: '1.4'
+    const badgeContainerStyle = {
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: '0.5rem',
+        marginTop: '0.25rem'
     };
+
+    const getBadgeStyle = (isSelected) => ({
+        padding: '0.5rem 1rem',
+        borderRadius: '20px',
+        fontSize: '0.87rem',
+        fontWeight: '500',
+        cursor: 'pointer',
+        border: isSelected ? '1px solid #0078d4' : '1px solid #cbd5e1',
+        backgroundColor: isSelected ? '#eff6ff' : '#ffffff',
+        color: isSelected ? '#0078d4' : '#475569',
+        transition: 'all 0.15s ease-in-out',
+        userSelect: 'none'
+    });
+    
     const submitButtonStyle = (loading) => ({
         padding: '0.75rem 2rem',
         borderRadius: '6px',
@@ -168,6 +244,7 @@ const handleSubmit = async (e) => {
         gap: '1rem',
         marginTop: '1rem'
     };
+
     return (
         <div style={containerStyle}>
             <form onSubmit={handleSubmit}>
@@ -176,22 +253,22 @@ const handleSubmit = async (e) => {
 
                     <div style={gridLayoutStyle}>
                         <div style={columnStyle}>
-                           <div style={formGroupStyle}>
-    <label style={labelStyle}>
-        Date 
-        <span style={requiredStarStyle}>*</span>
-    </label>
+                            <div style={formGroupStyle}>
+                                <label style={labelStyle}>
+                                    Date 
+                                    <span style={requiredStarStyle}>*</span>
+                                </label>
 
-    <input
-        type="text"
-        name="date"
-        value={formData.date}
-        onChange={handleChange}
-        placeholder="e.g., 1st January 2027"
-        style={inputStyle}
-        required
-    />
-</div>
+                                <input
+                                    type="text"
+                                    name="date"
+                                    value={formData.date}
+                                    onChange={handleChange}
+                                    placeholder="e.g., 1st January 2027"
+                                    style={inputStyle}
+                                    required
+                                />
+                            </div>
 
                             <div
                                 style={{
@@ -356,13 +433,8 @@ const handleSubmit = async (e) => {
                                     style={inputStyle}
                                     required
                                 >
-                                   
-                                    <option value="Pediatrics">
-                                        Pediatrics
-                                    </option>
-                                    <option value="Obstetrics & Gynaecology">
-                                        Obstetrics & Gynaecology
-                                    </option>
+                                    <option value="Pediatrics">Pediatrics</option>
+                                    <option value="Obstetrics & Gynaecology">Obstetrics & Gynaecology</option>
                                 </select>
                             </div>
 
@@ -379,7 +451,6 @@ const handleSubmit = async (e) => {
                                     style={inputStyle}
                                     required
                                 >
-                                
                                     <option value="Host">Host</option>
                                     <option value="Faculty">Faculty</option>
                                 </select>
@@ -393,24 +464,26 @@ const handleSubmit = async (e) => {
 
                     <div style={gridLayoutStyle}>
                         <div style={columnStyle}>
+                         
                             <div style={formGroupStyle}>
                                 <label style={labelStyle}>
                                     Content Format
                                     <span style={requiredStarStyle}>*</span>
                                 </label>
 
-                                <input
-                                    type="text"
-                                    name="contentFormat"
-                                    value={formData.contentFormat}
-                                    onChange={handleChange}
-                                    style={inputStyle}
-                                    required
-                                />
-
-                                <div style={hintStyle}>
-                                    Case Discussion, Panel Discussion, Talk,
-                                    Reel, Q&A, Series, Case Insight
+                                <div style={badgeContainerStyle}>
+                                    {formats.map((format) => {
+                                        const isSelected = formData.contentFormat.includes(format);
+                                        return (
+                                            <div
+                                                key={format}
+                                                style={getBadgeStyle(isSelected)}
+                                                onClick={() => handleFormatToggle(format)}
+                                            >
+                                                {format} {isSelected ? '✓' : '+'}
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             </div>
 
@@ -420,57 +493,55 @@ const handleSubmit = async (e) => {
                                     <span style={requiredStarStyle}>*</span>
                                 </label>
 
-                                <select
-                                    name="contentCategory"
-                                    value={formData.contentCategory}
-                                    onChange={handleChange}
-                                    style={inputStyle}
-                                    required
-                                >
-                           
-                                    <option value="Exclusive Members Access">
-                                        Exclusive Members Access
-                                    </option>
-                                    <option value="Daily Pulse">
-                                        Daily Pulse
-                                    </option>
-                                    <option value="Free">Free</option>
-                                </select>
+                                <div style={badgeContainerStyle}>
+                                    {categories.map((category) => {
+                                        const isSelected = formData.contentCategory.includes(category);
+                                        return (
+                                            <div
+                                                key={category}
+                                                style={getBadgeStyle(isSelected)}
+                                                onClick={() => handleCategoryToggle(category)}
+                                            >
+                                                {category} {isSelected ? '✓' : '+'}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
                             </div>
 
-                           <div style={formGroupStyle}>
-    <label style={labelStyle}>
-        Recording Month 
-        <span style={requiredStarStyle}>*</span>
-    </label>
+                            <div style={formGroupStyle}>
+                                <label style={labelStyle}>
+                                    Recording Month 
+                                    <span style={requiredStarStyle}>*</span>
+                                </label>
 
-    <input
-        type="text"
-        name="recordingMonth"
-        value={formData.recordingMonth}
-        onChange={handleChange}
-        placeholder="e.g., January 2027"
-        style={inputStyle}
-        required
-    />
-</div>
+                                <input
+                                    type="text"
+                                    name="recordingMonth"
+                                    value={formData.recordingMonth}
+                                    onChange={handleChange}
+                                    placeholder="e.g., January 2027"
+                                    style={inputStyle}
+                                    required
+                                />
+                            </div>
 
-                          <div style={formGroupStyle}>
-    <label style={labelStyle}>
-        Streaming Month (January 2027)
-        <span style={requiredStarStyle}>*</span>
-    </label>
+                            <div style={formGroupStyle}>
+                                <label style={labelStyle}>
+                                    Streaming Month (January 2027)
+                                    <span style={requiredStarStyle}>*</span>
+                                </label>
 
-    <input
-        type="text"
-        name="streamingMonth"
-        value={formData.streamingMonth}
-        onChange={handleChange}
-        placeholder="e.g., January 2027"
-        style={inputStyle}
-        required
-    />
-</div>
+                                <input
+                                    type="text"
+                                    name="streamingMonth"
+                                    value={formData.streamingMonth}
+                                    onChange={handleChange}
+                                    placeholder="e.g., January 2027"
+                                    style={inputStyle}
+                                    required
+                                />
+                            </div>
                         </div>
 
                         <div
@@ -510,41 +581,42 @@ const handleSubmit = async (e) => {
                                 />
                             </div>
 
-                           <div style={formGroupStyle}>
-    <label style={labelStyle}>
-        Number of Episodes / Sessions
-    </label>
+                            <div style={formGroupStyle}>
+                                <label style={labelStyle}>
+                                    Number of Episodes / Sessions
+                                </label>
 
-    <input
-        type="text"
-        name="numberOfEpisodes"
-        value={formData.numberOfEpisodes}
-        onChange={handleChange}
-        placeholder=""
-        style={inputStyle}
-    />
-</div>
+                                <input
+                                    type="number"
+                                    name="numberOfEpisodes"
+                                    min="0"
+                                    value={formData.numberOfEpisodes}
+                                    onChange={handleChange}
+                                    placeholder="e.g., 5"
+                                    style={inputStyle}
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>
 
- <div style={buttonContainerStyle}>
-    <button
-        type="button"
-        onClick={() => navigate('/')}
-        style={cancelButtonStyle}
-    >
-        Cancel
-    </button>
+                <div style={buttonContainerStyle}>
+                    <button
+                        type="button"
+                        onClick={() => navigate('/')}
+                        style={cancelButtonStyle}
+                    >
+                        Cancel
+                    </button>
 
-    <button
-        type="submit"
-        disabled={loading}
-        style={submitButtonStyle(loading)}
-    >
-        {loading ? 'Loading...' : 'SUBMIT'}
-    </button>
-</div>
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        style={submitButtonStyle(loading)}
+                    >
+                        {loading ? 'Loading...' : 'SUBMIT'}
+                    </button>
+                </div>
             </form>
         </div>
     );
