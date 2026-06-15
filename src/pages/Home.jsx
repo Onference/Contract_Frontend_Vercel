@@ -8,21 +8,17 @@ const Home = () => {
     const [pagination, setPagination] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [loading, setLoading] = useState(true);
-    
-    const [editingId, setEditingId] = useState(null);
-    const [documentName, setDocumentName] = useState('');
-    const [submittingId, setSubmittingId] = useState(null);
 
     useEffect(() => {
         const fetchDocuments = async () => {
             try {
                 setLoading(true);
-                const response = await api.get(`/document?page=${currentPage}`);
+                const response = await api.get(`/documents?page=${currentPage}`);
                
                 setDocuments(response.data.documents || []);
                 setPagination(response.data.pagination || null);
             } catch (err) {
-                // Displaying fetch errors via alert instead of local state
+           
                 alert(`Error Fetching Documents: ${err.message}`);
             } finally {
                 setLoading(false);
@@ -44,45 +40,6 @@ const Home = () => {
         }
     };
 
-    const initSendWorkflow = (docId) => {
-        setEditingId(docId);
-        setDocumentName(''); 
-    };
-
-    const cancelSendWorkflow = () => {
-        setEditingId(null);
-        setDocumentName('');
-    };
-
-    const handleSendDocument = async (docId) => {
-        if (!documentName.trim()) {
-            return;
-        }
-
-        try {
-            setSubmittingId(docId);
-
-            await api.post('/document/submit', {
-                id: docId,
-                name: documentName.trim()
-            });
-
-            setDocuments(prevDocs => 
-                prevDocs.map(doc => 
-                    doc._id === docId ? { ...doc, status: 'Sent' } : doc
-                )
-            );
-            
-            setEditingId(null);
-            setDocumentName('');
-
-        } catch (err) {
-            alert(`Document Send Error: ${err.message}`);
-        } finally {
-            setSubmittingId(null);
-        }
-    };
-
     return (
         <div style={containerStyle}>
          
@@ -100,7 +57,6 @@ const Home = () => {
             {loading && (
                 <div style={statusContainerStyle}>
                     <div style={spinnerStyle}></div>
-                    <p style={loadingTextStyle}>.....</p>
                 </div>
             )}
 
@@ -117,7 +73,6 @@ const Home = () => {
                             <thead>
                                 <tr>
                                     <th style={tableHeaderStyle}>Status</th>
-                                    <th style={tableHeaderStyle}>Send</th>
                                     <th style={tableHeaderStyle}>Document</th>
                                     <th style={tableHeaderStyle}>Date</th>
                                     <th style={tableHeaderStyle}>Annexure Only</th>
@@ -136,16 +91,10 @@ const Home = () => {
                                     <th style={tableHeaderStyle}>Content Category</th>
                                     <th style={tableHeaderStyle}>Recording Month</th>
                                     <th style={tableHeaderStyle}>Streaming Month</th>
-                                 
                                 </tr>
                             </thead>
                             <tbody>
                                 {documents.map((doc, index) => {
-                                    const normalizedStatus = doc.status?.toLowerCase().trim();
-                                    const isSendPending = normalizedStatus === 'created';
-                                    const isEditing = editingId === doc._id;
-                                    const isSubmitting = submittingId === doc._id;
-
                                     return (
                                         <tr key={doc._id || index} style={tableRowStyle}>
                                             <td style={tableCellStyle}>
@@ -154,47 +103,6 @@ const Home = () => {
                                                 </span>
                                             </td>
                                             
-                                            <td style={tableCellStyle}>
-                                                {isEditing ? (
-                                                    <div style={inputGroupStyle}>
-                                                        <input 
-                                                            type="text"
-                                                            placeholder="Document Name"
-                                                            value={documentName}
-                                                            onChange={(e) => setDocumentName(e.target.value)}
-                                                            disabled={isSubmitting}
-                                                            style={inlineInputStyle}
-                                                            autoFocus
-                                                        />
-                                                        <button
-                                                            onClick={() => handleSendDocument(doc._id)}
-                                                            disabled={isSubmitting || !documentName.trim()}
-                                                            style={{
-                                                                ...confirmButtonStyle,
-                                                                opacity: (isSubmitting || !documentName.trim()) ? 0.5 : 1
-                                                            }}
-                                                        >
-                                                            {isSubmitting ? '.....' : '✓'}
-                                                        </button>
-                                                        <button
-                                                            onClick={cancelSendWorkflow}
-                                                            disabled={isSubmitting}
-                                                            style={cancelButtonStyle}
-                                                        >
-                                                            ✕
-                                                        </button>
-                                                    </div>
-                                                ) : isSendPending ? (
-                                                    <button
-                                                        onClick={() => initSendWorkflow(doc._id)}
-                                                        style={sendButtonStyle}
-                                                    >
-                                                        Send
-                                                    </button>
-                                                ) : (
-                                                    <span style={{ color: '#a0aec0', fontSize: '13px' }}>—</span>
-                                                )}
-                                            </td>
                                             <td style={tableCellStyle}>
                                                 {doc.url ? (
                                                     <a 
@@ -375,62 +283,6 @@ const buttonStyle = {
     transition: 'background-color 0.2s'
 };
 
-const sendButtonStyle = {
-    padding: '6px 14px', 
-    backgroundColor: '#10b981', 
-    color: '#fff', 
-    border: 'none',
-    borderRadius: '6px', 
-    cursor: 'pointer',
-    fontSize: '13px',
-    fontWeight: '600',
-    boxShadow: '0 1px 2px 0 rgba(16, 185, 129, 0.05)',
-    transition: 'background-color 0.2s',
-    letterSpacing: '0.5px'
-};
-
-const inputGroupStyle = {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px'
-};
-
-const inlineInputStyle = {
-    padding: '6px 10px',
-    fontSize: '13px',
-    border: '1px solid #cbd5e1',
-    borderRadius: '6px',
-    outline: 'none',
-    color: '#334155',
-    width: '140px',
-    fontFamily: 'inherit',
-    transition: 'border-color 0.15s ease',
-    backgroundColor: '#fff'
-};
-
-const confirmButtonStyle = {
-    padding: '6px 10px',
-    backgroundColor: '#10b981',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontSize: '12px',
-    fontWeight: 'bold',
-    boxShadow: '0 1px 2px 0 rgba(16, 185, 129, 0.1)'
-};
-
-const cancelButtonStyle = {
-    padding: '6px 10px',
-    backgroundColor: '#f1f5f9',
-    color: '#64748b',
-    border: '1px solid #e2e8f0',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontSize: '11px',
-    fontWeight: 'bold'
-};
-
 const paginationContainerStyle = {
     display: 'flex',
     justifyContent: 'space-between', 
@@ -481,12 +333,6 @@ const spinnerStyle = {
     borderTop: '3px solid #4f46e5',
     borderRadius: '50%',
     animation: 'spin 1s linear infinite'
-};
-
-const loadingTextStyle = {
-    marginTop: '12px',
-    color: '#718096',
-    fontSize: '14px'
 };
 
 const emptyContainerStyle = {
