@@ -5,8 +5,8 @@ import NavBar from '../components/NavBar';
 
 export const ProtectedLayout = () => {
     const { isAuthenticated, loading } = useAuth();
-
-    if (loading) {
+    
+if (loading) {
         return <LoadingSpinner />;
     }
 
