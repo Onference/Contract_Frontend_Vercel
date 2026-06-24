@@ -30,6 +30,9 @@ const NavBar = () => {
                 <Link to="/form" style={{ textDecoration: 'none', color: '#374151', fontWeight: '500' }}>
                     Form
                 </Link>
+                <Link to="/hybrid/form" style={{ textDecoration: 'none', color: '#374151', fontWeight: '500' }}>
+                    Hybrid Form
+                </Link>
             </div>
 
             <button
