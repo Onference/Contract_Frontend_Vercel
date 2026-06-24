@@ -528,7 +528,7 @@ const Form = () => {
 
                             <div style={formGroupStyle}>
                                 <label style={labelStyle}>
-                                    Streaming Month (January 2027)
+                                    Streaming Month
                                     <span style={requiredStarStyle}>*</span>
                                 </label>
 

@@ -1,5 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
 import { ProtectedLayout } from './layouts/ProtectedLayout';
+import AccessGuard from './components/AccessGuard';
 
 import Home from './pages/Home';
 import Login from './pages/Login';
@@ -12,8 +13,23 @@ function App() {
 
             <Route element={<ProtectedLayout />}>
                 <Route path="/" element={<Home />} />
-                <Route path="/form" element={<Form />} />
-                <Route path="/hybrid/form" element={<HybridForm />} />
+            <Route
+            path="/form"
+            element={
+                <AccessGuard value="kol">
+                    <Form />
+                </AccessGuard>
+            }
+        />
+
+        <Route
+            path="/hybrid/form"
+            element={
+                <AccessGuard value="hybrid">
+                    <HybridForm />
+                </AccessGuard>
+            }
+        />
             </Route>
         </Routes>
     );
